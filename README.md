@@ -135,6 +135,16 @@ This project leverages a modern and robust tech stack for data processing and in
   <img width="1265" height="658" alt="Screenshot 2025-09-17 at 3 00 32 AM" src="https://github.com/user-attachments/assets/03f4d419-d4cc-464d-a742-b0a3df5f3f5f" />
 
 
+This project implemented a **Slowly Changing Dimension (SCD)** data pipeline using a hybrid cloud architecture. The pipeline automates the ingestion, transformation, and management of data changes within a **Snowflake** data warehouse.
+
+The workflow is as follows:
+
+* **Setup:** An **Amazon EC2** instance was set up to host **Apache NiFi** and **Jupyter Notebooks** in **Docker** containers, creating a portable environment for orchestration and scripting.
+* **Data Ingestion:** Source data from CSV files and mock APIs was ingested by **NiFi** and then moved into an **Amazon S3** bucket, which served as an intermediate data lake.
+* **Data Transformation:** **Jupyter Notebooks** with SQL and Python were used to clean and prepare the data. The processed data was then loaded into Snowflake staging tables.
+* **SCD Implementation:** Both **SCD Type 1** (overwriting data) and **SCD Type 2** (preserving historical records) were implemented in Snowflake. The logic uses **Streams and Tasks** to automatically track and capture data changes, ensuring that the correct updates and inserts are performed on the dimension tables.
+
+
   
   
   
