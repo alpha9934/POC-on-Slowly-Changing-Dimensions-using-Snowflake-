@@ -3,6 +3,21 @@ Implement Type 1 and Type 2 SCDs in Snowflake by leveraging Streams and Tasks.
 
 ## Project Description
 
+This project involves building a comprehensive data pipeline in a modern data warehouse environment using **Snowflake**. The goal is to demonstrate the implementation of **Slowly Changing Dimensions (SCDs)**, specifically **Type 1 and Type 2**, to track historical data changes.
+
+### Tech Stack and Data Flow
+
+The data pipeline utilizes the following technologies and a specific flow:
+
+* **Data Generation:** Synthetic user data is created using the **Faker** library and stored as timestamped CSV files.
+* **Ingestion:** **Apache NiFi** streams this data into an **Amazon S3** bucket.
+* **Data Loading:** **Snowpipe** automates the loading of data from S3 into a staging table in **Snowflake**.
+* **SCD Logic:** The core of the project uses **Snowflake Streams, Tasks, and Stored Procedures** to dynamically apply the SCD Type 1 and Type 2 logic, updating records or preserving historical versions as needed.
+
+The pipeline is designed to simulate real-world data warehousing scenarios using a mix of Python, Apache NiFi, Docker, and various cloud services.
+
+---
+
 ### Data Warehousing Fundamentals
 * **Facts:** A fact is a piece of numerical data, such as a sale or a click. Facts are stored in **fact tables**.
 * **Dimensions:** Dimensions are companion tables that provide descriptive features for the facts, such as customer, geography, or employee data. They are linked to fact tables via foreign keys.
@@ -24,6 +39,42 @@ Implement Type 1 and Type 2 SCDs in Snowflake by leveraging Streams and Tasks.
 * **Type 3 (Previous Value):** Two copies of a value are maintained for selected attributes: the current value and the previous value, both stored in the same record. When a change occurs, the current value is updated, and the previous value is saved in a new column.
 
   ---
+### Use Case Summary
+
+This project demonstrates a cloud-native **ETL (Extract, Transform, Load)** pipeline built on **AWS** and **Snowflake**. The core purpose is to simulate and process **Slowly Changing Dimension (SCD)** data for customers, specifically tracking changes and preserving a historical record.
+
+The system supports real-time data ingestion and is designed for use cases such as:
+* Assessing creditworthiness.
+* Generating personalized recommendations.
+* Ensuring regulatory compliance.
+
+### Real-World Example
+
+A retail bank uses this system to capture periodic snapshots of customer profiles (e.g., name, income, address). The pipeline detects changes over time and applies **SCD logic** to maintain a versioned history in Snowflake. This historical data is then used for:
+* Customer segmentation.
+* Risk scoring.
+* Personalized credit offers.
+* Maintaining an auditable data trail.
+
+  ---
+  ---
+
+  ### Key Features of the Project
+
+* **Slowly Changing Dimensions (SCD):** The project implements both **SCD Type 1** (overwriting old data for real-time updates) and **SCD Type 2** (preserving historical records for auditing and trend analysis).
+
+* **Automated ETL Pipeline:** This is a fully automated, end-to-end data pipeline. It handles everything from data generation using **Faker** to loading into **Snowflake**, with minimal manual intervention.
+
+* **Hybrid Cloud Integration:** The system integrates services from multiple cloud platforms, including **AWS (S3, EC2)** and **Snowflake**, demonstrating interoperability between different cloud environments.
+
+* **Orchestration and Containerization:** The pipeline is orchestrated using **Apache NiFi** and uses **Docker** for containerization, which ensures consistency and portability.
+
+* **Schema-Driven Data Handling:** The architecture is based on a **dimensional model**, which cleanly separates transactional data (facts) from descriptive data (dimensions) to enable scalable analytical queries.
+
+* **Real-Time and Batch Support:** The pipeline is designed to handle both **streaming (near real-time)** and **batch** data, making it suitable for a wide range of analytical and reporting use cases.
+
+  ---
+  
 ### DataPipeline:
 A data pipeline is a system designed to automate the movement and processing of data from one system to another.
 
@@ -79,7 +130,7 @@ This project leverages a modern and robust tech stack for data processing and in
 * **Docker:** Used for containerization to ensure consistent and portable application deployment.
 
   ---
-  ### Implementation Flow :
+  ### WorkFlow :
 
   <img width="1265" height="658" alt="Screenshot 2025-09-17 at 3 00 32 AM" src="https://github.com/user-attachments/assets/03f4d419-d4cc-464d-a742-b0a3df5f3f5f" />
 
