@@ -23,6 +23,8 @@ The pipeline is designed to simulate real-world data warehousing scenarios using
 * **Dimensions:** Dimensions are companion tables that provide descriptive features for the facts, such as customer, geography, or employee data. They are linked to fact tables via foreign keys.
 * **Dimension Attributes:** These are the columns within a dimension table that provide the descriptive features.
 
+<img width="1920" height="671" alt="what-is-a-data-warehouse" src="https://github.com/user-attachments/assets/460c9e77-79c7-4e6e-b068-f893f0f55ced" />
+
 ---
 
 ### Slowly Changing Dimensions (SCD)
