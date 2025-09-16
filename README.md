@@ -129,6 +129,89 @@ This project leverages a modern and robust tech stack for data processing and in
 * **Amazon EC2:** Provides scalable compute capacity for deploying applications and services.
 * **Docker:** Used for containerization to ensure consistent and portable application deployment.
 
+---
+
+### **Implementation & Logic of SCD1 and SCD2** :
+
+Based on the provided document, here is a detailed explanation of the Slowly Changing Dimension (SCD) Type 1 and Type 2 processes, including the logic and query results.
+
+***
+
+### 1. Slowly Changing Dimension (SCD) Type 1
+
+SCD Type 1 is a method where a new record's data overwrites the existing data, and no history is preserved. This is a common approach for updates that don't require historical tracking, such as correcting a typo in a customer's name. The process is automated using a Snowflake Stored Procedure and a Task.
+
+**Logic & Implementation:**
+The core of the SCD Type 1 process is a `MERGE` statement that compares records in the main dimension table (`DIM_CUSTOMER_SCD1`) with new data from a staging table (`STG_CUSTOMER_SCD1`).
+
+1.  **Create a Stored Procedure:** A stored procedure is created to encapsulate the `MERGE` statement logic.
+2.  **Define a Task:** A Snowflake Task is scheduled to execute this stored procedure periodically (e.g., every minute), automating the data update process. The task also truncates the staging table after a successful merge.
+
+**Query & Result:**
+The `MERGE` statement identifies matching records by `CUSTOMER_ID` and updates non-key attributes (`CUSTOMER_NAME`, `PHONE_NUMBER`, `EMAIL`). If a record is present in the staging table but not the dimension table, it is inserted as a new row.
+
+Here is the example of the data merge from the document:
+
+**Before Merge (Staging Table):**
+| CUSTOMER_ID | CUSTOMER_NAME | PHONE_NUMBER | EMAIL_ID |
+| :--- | :--- | :--- | :--- |
+| 10001 | JOHN SMITH | 800-555-0199 | john.smith@xyz.com |
+
+**Before Merge (Dimension Table):**
+| CUSTOMER_ID | CUSTOMER_NAME | PHONE_NUMBER | EMAIL_ID |
+| :--- | :--- | :--- | :--- |
+| 10001 | JOHN SIMPSON | 800-555-0100 | j.simpson@abc.com |
+
+**After Merge (Dimension Table):**
+The `MERGE` statement updates the `DIM_CUSTOMER_SCD1` record for `CUSTOMER_ID` 10001.
+
+| CUSTOMER_ID | CUSTOMER_NAME | PHONE_NUMBER | EMAIL_ID |
+| :--- | :--- | :--- | :--- |
+| 10001 | JOHN SMITH | 800-555-0199 | john.smith@xyz.com |
+
+***
+
+### 2. Slowly Changing Dimension (SCD) Type 2
+
+SCD Type 2 is a more complex method that preserves the complete history of data changes. When an attribute value changes, a new record is created to store the new data, and the old record is marked as "historical." This is crucial for analyzing trends and maintaining data auditability.
+
+The implementation relies on Snowflake's Streams and Tasks.
+
+**Logic & Implementation:**
+1.  **Create a Stream:** A `STREAM` is created on the staging table (`STG_CUSTOMER_SCD2`) to capture all DML changes. This stream records metadata about each change, including the type of change (`INSERT`, `UPDATE`, or `DELETE`) in the `METADATA$ACTION` column.
+
+2.  **Create a Task:** A `TASK` is scheduled to run a `MERGE` statement that processes the changes captured by the stream. The task performs the following actions:
+    * **Updates:** For records that have been updated, the existing row in the dimension table (`DIM_CUSTOMER_SCD2`) is "closed" by setting its `end_time` and changing its `is_current` flag to `FALSE`.
+    * **Inserts:** For new or updated records, a new row is inserted into the dimension table with a new `CUSTOMER_KEY`, an `is_current` flag set to `TRUE`, and an `end_time` of `NULL`.
+
+**Query & Result:**
+Here is an example of the data transformation and the resulting table:
+
+**Initial Record (Dimension Table):**
+| CUSTOMER_KEY | CUSTOMER_ID | IS_CURRENT | START_TIME | END_TIME | PHONE_NUMBER | EMAIL_ID |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 100 | 10001 | TRUE | 2025-08-01 10:00:00 | NULL | 800-555-0100 | j.simpson@abc.com |
+
+**Update (Staging Table):**
+A record with `CUSTOMER_ID` 10001 is updated with a new phone number and email.
+
+| CUSTOMER_ID | PHONE_NUMBER | EMAIL_ID |
+| :--- | :--- | :--- |
+| 10001 | 800-555-0199 | john.smith@xyz.com |
+
+**After Merge (Dimension Table):**
+The `MERGE` statement processes this update, resulting in two rows for `CUSTOMER_ID` 10001.
+
+* The first row (old data) is closed.
+* A new row is inserted with the updated information.
+
+| CUSTOMER_KEY | CUSTOMER_ID | IS_CURRENT | START_TIME | END_TIME | PHONE_NUMBER | EMAIL_ID |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 100 | 10001 | FALSE | 2025-08-01 10:00:00 | 2025-09-17 03:45:00 | 800-555-0100 | j.simpson@abc.com |
+| 101 | 10001 | TRUE | 2025-09-17 03:45:00 | NULL | 800-555-0199 | john.smith@xyz.com |
+
+This approach effectively versions the data, allowing for full historical tracking.
+
   ---
   ### WorkFlow :
 
